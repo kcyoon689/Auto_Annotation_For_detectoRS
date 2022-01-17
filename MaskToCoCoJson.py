@@ -1,6 +1,7 @@
 import json
 import os
 from pathlib import Path
+import shutil
 
 from shapely.geometry import Polygon, MultiPolygon  # (pip install Shapely)
 from skimage import measure                        # (pip install scikit-image)
@@ -15,11 +16,11 @@ def create_sub_masks(mask_image):
     sub_masks = {}
     for x in range(width):
         for y in range(height):
-            # Get the RGB values of the pixel
-            pixel = mask_image.getpixel((x, y))[:3]
+            # Get the values of the pixel
+            pixel = mask_image.getpixel((x, y))
 
             # If the pixel is not black...
-            if pixel != (0, 0, 0):
+            if pixel != (255): # background : ignore_label
                 # Check to see if we've created a sub-mask...
                 pixel_str = str(pixel)
                 sub_mask = sub_masks.get(pixel_str)
@@ -81,93 +82,131 @@ def create_sub_mask_annotation(sub_mask, image_id, category_id, annotation_id, i
     return annotation_dict
 
 
-imageDirPath = Path('./images').absolute()
-imageNameList = os.listdir(imageDirPath)
-imagePathList = [os.path.join(imageDirPath,imageName) for imageName in imageNameList]
+if __name__ == "__main__":
+    rootDirPath = Path('../output/').absolute()
+    trainDirPath = os.path.join(rootDirPath, 'train')
+    valDirPath = os.path.join(rootDirPath, 'val')
+    testDirPath = os.path.join(rootDirPath, 'test')
+    annotDirPath = os.path.join(rootDirPath, "annotations")
 
-maskDirPath = Path('./masks').absolute()
-maskNameList = os.listdir(maskDirPath)
-maskPathList = [os.path.join(maskDirPath, maskName) for maskName in maskNameList]
+    dataDirPathList = [trainDirPath, valDirPath, testDirPath]
+    for dataDirPath in dataDirPathList:
+        imageDirPath = os.path.join(dataDirPath, 'images')
+        imageNameList = os.listdir(imageDirPath)
+        imagePathList = [os.path.join(imageDirPath, imageName) for imageName in imageNameList]
 
-# imagePathList = [imagePathList[0], imagePathList[1]]
-# maskImageList = [Image.open(maskPathList[0]), Image.open(maskPathList[1])]
-maskImageList = [Image.open(maskPath) for maskPath in maskPathList]
+        maskDirPath = os.path.join(dataDirPath, 'masks')
+        maskNameList = os.listdir(maskDirPath)
+        maskPathList = [os.path.join(maskDirPath, maskName) for maskName in maskNameList]
 
-# Define which colors match which categories in the images
-category_names_list = ['table', 'chair', 'drawer']
-category_ids = {
-  '(255, 255, 255)': category_names_list.index('table')+1,
-  '(0, 255, 255)': category_names_list.index('chair')+1,
-  '(255, 0, 255)': category_names_list.index('drawer')+1,
-}
+        # print(len(imageNameList))
+        # print(len(maskNameList))
+        # sys.exit() # stop!
 
-# Create the json_dict
-json_dict = {}
+        # imagePathList = [imagePathList[0], imagePathList[1]]
+        # maskImageList = [Image.open(maskPathList[0]), Image.open(maskPathList[1])]
+        maskImageList = [Image.open(maskPath) for maskPath in maskPathList]
 
-# Create the info dict
-info_dict = {}
-info_dict['description'] = "kcyoon 2022 IKEA Dataset"
-info_dict['url'] = ""
-info_dict['version'] = "1.0"
-info_dict['year'] = 2022
-info_dict['contributor'] = "chaeyoon kim"
-info_dict['date_created'] = "2022/01/15"
-json_dict['info'] = info_dict
+        # Define which colors match which categories in the images
+        category_names_list = ['table', 'chair', 'drawer']
+        category_ids = {
+        #   '(255, 255, 255)': category_names_list.index('table')+1,
+        #   '(0, 255, 255)': category_names_list.index('chair')+1,
+        #   '(255, 0, 255)': category_names_list.index('drawer')+1,
+        '0': category_names_list.index('table'), # 0
+        '1': category_names_list.index('chair'), # 1
+        '2': category_names_list.index('drawer'), # 2
+        '255': 255,
+        }
 
-# Create the licenses_list
-licenses_list = []
-licenses_dict = {}
-licenses_dict['url'] = ""
-licenses_dict['id'] = 1
-licenses_dict['name'] = ""
-licenses_list = [licenses_dict]
-json_dict['licenses'] = licenses_list
+        # Create the json_dict
+        json_dict = {}
 
-# Create the images_list
-images_list = []
-image_id = 1
-pbar = tqdm(imagePathList)
-for imagePath in pbar:
-    pbar.set_description("images")
-    image_dict = {}
-    image_dict['id'] = image_id
-    image_dict['license'] = 1
-    image_dict['coco_url'] = ""
-    image_dict['flickr_url'] = ""
-    image_dict['height'] = 480
-    image_dict['width'] = 640
-    image_dict['file_name'] = os.path.split(imagePath)[-1]
-    image_dict['date_captured'] = "2022/01/15"
-    images_list.append(image_dict)
-    image_id += 1
-json_dict['images'] = images_list
+        # Create the info dict
+        info_dict = {}
+        info_dict['description'] = "kcyoon 2022 IKEA Dataset (" + os.path.split(dataDirPath)[-1] + ")"
+        info_dict['url'] = ""
+        info_dict['version'] = "1.0"
+        info_dict['year'] = 2022
+        info_dict['contributor'] = "chaeyoon kim"
+        info_dict['date_created'] = "2022/01/15"
+        json_dict['info'] = info_dict
 
-# Create the annotation_list
-annotation_list = []
-image_id = 1
-annotation_id = 1
-pbar = tqdm(maskImageList)
-for mask_image in tqdm(maskImageList):
-    pbar.set_description("annotations")
-    sub_masks = create_sub_masks(mask_image)
-    for color, sub_mask in sub_masks.items():
-        category_id = category_ids[color]
-        annotation_dict = create_sub_mask_annotation(sub_mask, image_id, category_id, annotation_id, is_crowd = 0)
-        annotation_list.append(annotation_dict)
-        annotation_id += 1
-    image_id += 1
-json_dict['annotations'] = annotation_list
+        # Create the licenses_list
+        licenses_list = []
+        licenses_dict = {}
+        licenses_dict['url'] = ""
+        licenses_dict['id'] = 1
+        licenses_dict['name'] = ""
+        licenses_list = [licenses_dict]
+        json_dict['licenses'] = licenses_list
 
-# Create the categories_list
-categories_list = []
-for category_names in category_names_list:
-    categories_dict = {}
-    categories_dict['supercategory'] = ""
-    categories_dict['id'] = category_names_list.index(category_names)+1
-    categories_dict['name'] = category_names
-    categories_list.append(categories_dict)
+        # Create the images_list
+        images_list = []
+        image_id = 1
+        pbar = tqdm(imagePathList)
+        for imagePath in pbar:
+            pbar.set_description("images [" + os.path.split(dataDirPath)[-1] + "]")
+            image_dict = {}
+            image_dict['id'] = image_id
+            image_dict['license'] = 1
+            image_dict['coco_url'] = ""
+            image_dict['flickr_url'] = ""
+            image_dict['height'] = 480
+            image_dict['width'] = 640
+            image_dict['file_name'] = os.path.split(imagePath)[-1]
+            image_dict['date_captured'] = "2022/01/15"
+            images_list.append(image_dict)
+            image_id += 1
+        json_dict['images'] = images_list
 
-json_dict['categories'] = categories_list
+        # Create the annotation_list
+        annotation_list = []
+        image_id = 1
+        annotation_id = 1
+        pbar = tqdm(maskImageList)
+        for mask_image in tqdm(maskImageList):
+            pbar.set_description("annotations [" + os.path.split(dataDirPath)[-1] + "]")
+            sub_masks = create_sub_masks(mask_image)
+            for color, sub_mask in sub_masks.items():
+                category_id = category_ids[color]
+                annotation_dict = create_sub_mask_annotation(sub_mask, image_id, category_id, annotation_id, is_crowd = 0)
+                annotation_list.append(annotation_dict)
+                annotation_id += 1
+            image_id += 1
+        json_dict['annotations'] = annotation_list
 
-with open("test.json", "w") as json_file:
-  json_file.write(json.dumps(json_dict, indent = 4))
+        # Create the categories_list
+        categories_list = []
+        for category_names in category_names_list:
+            categories_dict = {}
+            categories_dict['supercategory'] = ""
+            categories_dict['id'] = category_names_list.index(category_names)
+            categories_dict['name'] = category_names
+            categories_list.append(categories_dict)
+
+        json_dict['categories'] = categories_list
+
+        with open(os.path.join(annotDirPath, os.path.split(dataDirPath)[-1]) + ".json", "w") as json_file:
+            json_file.write(json.dumps(json_dict, indent = 4))
+
+    # Copy the images to the annotations directory
+    dataDirPathList = [trainDirPath, valDirPath, testDirPath]
+    outputDirNameList = ['train2022', 'val2022', 'test2022']
+
+    for dataDirPath, outputDirName in zip(dataDirPathList, outputDirNameList):
+        imageDirPath = os.path.join(dataDirPath, 'images')
+        cocoImageDirPath = os.path.join(rootDirPath, outputDirName)
+        for imageName in os.listdir(imageDirPath):
+            imagePath = os.path.join(imageDirPath, imageName)
+            shutil.copy(imagePath, cocoImageDirPath)
+
+    # Copy the masks to the annotations directory
+    stuffDirPath = os.path.join(rootDirPath, 'stuffthingmaps')
+    
+    for dataDirPath, outputDirName in zip(dataDirPathList, outputDirNameList):
+        maskDirPath = os.path.join(dataDirPath, 'masks')
+        cocoMaskDirPath = os.path.join(stuffDirPath, outputDirName)
+        for maskName in os.listdir(maskDirPath):
+            maskPath = os.path.join(maskDirPath, maskName)
+            shutil.copy(maskPath, cocoMaskDirPath)
