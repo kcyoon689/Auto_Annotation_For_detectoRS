@@ -20,7 +20,8 @@ def create_sub_masks(mask_image):
             pixel = mask_image.getpixel((x, y))
 
             # If the pixel is not black...
-            if pixel != (255): # background : ignore_label
+            # if pixel != (255): # background : ignore_label
+            if pixel != (0): # background : ignore_label
                 # Check to see if we've created a sub-mask...
                 pixel_str = str(pixel)
                 sub_mask = sub_masks.get(pixel_str)
@@ -113,9 +114,13 @@ if __name__ == "__main__":
         #   '(255, 255, 255)': category_names_list.index('table')+1,
         #   '(0, 255, 255)': category_names_list.index('chair')+1,
         #   '(255, 0, 255)': category_names_list.index('drawer')+1,
-        '0': category_names_list.index('table'), # 0
-        '1': category_names_list.index('chair'), # 1
-        '2': category_names_list.index('drawer'), # 2
+        # '0': category_names_list.index('table'), # 0
+        # '1': category_names_list.index('chair'), # 1
+        # '2': category_names_list.index('drawer'), # 2
+        '0': 0,
+        '1': 1,
+        '2': 2,
+        '3': 3,
         '255': 255,
         }
 
@@ -172,7 +177,7 @@ if __name__ == "__main__":
                 category_id = category_ids[color]
                 annotation_dict = create_sub_mask_annotation(sub_mask, image_id, category_id, annotation_id, is_crowd = 0)
                 annotation_list.append(annotation_dict)
-                annotation_id += 1
+                annotation_id += 1 # it is okay when one foreground per one image
             image_id += 1
         json_dict['annotations'] = annotation_list
 
@@ -181,7 +186,7 @@ if __name__ == "__main__":
         for category_names in category_names_list:
             categories_dict = {}
             categories_dict['supercategory'] = ""
-            categories_dict['id'] = category_names_list.index(category_names)
+            categories_dict['id'] = category_names_list.index(category_names)+1
             categories_dict['name'] = category_names
             categories_list.append(categories_dict)
 
