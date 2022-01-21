@@ -43,7 +43,7 @@ for class_id, _ in enumerate(category_names_list): # class_id(step) = 0, 1, 2 (t
     # cv2.waitKey(0)
 
     # mask_rgb = cv2.cvtColor(mask, cv2.COLOR_GRAY2RGB) # 255,255,255
-    mask_classId = np.where(mask == 255, class_id+1, 0)
+    mask_classId = np.where(mask == 255, class_id+253, 0)
 
     maskPath = imagePath.replace("images", "masks")
     maskPath = maskPath.replace("png", "bmp")

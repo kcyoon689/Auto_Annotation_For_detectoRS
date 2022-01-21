@@ -1,5 +1,6 @@
 import json
 import os
+import sys
 from pathlib import Path
 import shutil
 
@@ -88,20 +89,26 @@ if __name__ == "__main__":
     trainDirPath = os.path.join(rootDirPath, 'train')
     valDirPath = os.path.join(rootDirPath, 'val')
     testDirPath = os.path.join(rootDirPath, 'test')
-    annotDirPath = os.path.join(rootDirPath, "annotations")
+    annotDirPath = os.path.join(rootDirPath, 'annotations')
 
     dataDirPathList = [trainDirPath, valDirPath, testDirPath]
     for dataDirPath in dataDirPathList:
         imageDirPath = os.path.join(dataDirPath, 'images')
         imageNameList = os.listdir(imageDirPath)
         imagePathList = [os.path.join(imageDirPath, imageName) for imageName in imageNameList]
+        imagePathList.sort()
 
         maskDirPath = os.path.join(dataDirPath, 'masks')
         maskNameList = os.listdir(maskDirPath)
         maskPathList = [os.path.join(maskDirPath, maskName) for maskName in maskNameList]
+        maskPathList.sort()
 
         # print(len(imageNameList))
         # print(len(maskNameList))
+        # print(imageDirPath)
+        # print(maskDirPath)
+        # print(imagePathList[100:105])
+        # print(maskPathList[100:105])
         # sys.exit() # stop!
 
         # imagePathList = [imagePathList[0], imagePathList[1]]
