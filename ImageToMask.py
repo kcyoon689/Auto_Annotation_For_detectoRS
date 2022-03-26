@@ -9,8 +9,11 @@ from tqdm import tqdm
 
 print("Start Image2Mask")
 
-category_names_list = ['desk', 'chair', 'drawer'] # Background > 237
-threshold_list = [211, 254, 254]
+# category_names_list = ['ashcan', 'beer', 'bowl', 'can', 'chair', 'coke', 'football_helmet', 'lamp', 'vase'] # Background > 237
+# threshold_list = [254, 254, 254, 254, 254, 254, 254, 254, 254]
+category_names_list = ['ashcan', 'beer_bottle', 'beer_can', 'bowl', 'camera', 'chair', 'clock', 'coke', 'faucet', 
+        'football_helmet', 'guitar', 'jug', 'lamp', 'piano', 'pistol', 'pool_table', 'sofa'] # Background > 237
+threshold_list = [254, 254, 254, 254, 254, 254, 254, 254, 254, 254, 254, 254, 254, 254, 254, 254, 254]
 
 for class_id, _ in enumerate(category_names_list): # class_id(step) = 0, 1, 2 (table, chair, drawer)
 
@@ -20,7 +23,7 @@ for class_id, _ in enumerate(category_names_list): # class_id(step) = 0, 1, 2 (t
 
   # print("imageDirPath: {}".format(imageDirPath))``
   # print("imageNameList: {}".format(imageNameList))
-  print(imageDirPath)
+  print("imageDirPath:", imageDirPath)
 
   imagePathList = [os.path.join(imageDirPath,imageName) for imageName in imageNameList]
   # imagePathList = imagePathList[:10]
@@ -38,14 +41,14 @@ for class_id, _ in enumerate(category_names_list): # class_id(step) = 0, 1, 2 (t
     # cv2.imwrite(grayPath, image_gray)
 
 
-    ret, mask = cv2.threshold(image_gray, threshold_list[class_id], 255, cv2.THRESH_BINARY_INV)
+    ret, mask = cv2.threshold(image_gray, threshold_list[class_id], 255, cv2.THRESH_BINARY_INV) # 255: foreground, 0: background
     # cv2.imshow("mask", mask)
     # cv2.waitKey(0)
 
     # mask_rgb = cv2.cvtColor(mask, cv2.COLOR_GRAY2RGB) # 255,255,255
-    mask_classId = np.where(mask == 255, class_id+253, 0)
+    mask_classId = np.where(mask == 255, class_id, 255)
 
     maskPath = imagePath.replace("images", "masks")
-    maskPath = maskPath.replace("png", "bmp")
+    # maskPath = maskPath.replace("png", "bmp")
     cv2.imwrite(maskPath, mask_classId)
 

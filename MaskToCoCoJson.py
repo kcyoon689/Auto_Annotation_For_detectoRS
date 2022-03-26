@@ -21,8 +21,8 @@ def create_sub_masks(mask_image):
             pixel = mask_image.getpixel((x, y))
 
             # If the pixel is not black...
-            # if pixel != (255): # background : ignore_label
-            if pixel != (0): # background : ignore_label
+            if pixel != (255): # background : ignore_label
+            # if pixel != (0): # background : ignore_label
                 # Check to see if we've created a sub-mask...
                 pixel_str = str(pixel)
                 sub_mask = sub_masks.get(pixel_str)
@@ -85,7 +85,7 @@ def create_sub_mask_annotation(sub_mask, image_id, category_id, annotation_id, i
 
 
 if __name__ == "__main__":
-    rootDirPath = Path('../output/').absolute()
+    rootDirPath = Path('/home/crvl-yoon/detectoRS/output/').absolute()
     trainDirPath = os.path.join(rootDirPath, 'train')
     valDirPath = os.path.join(rootDirPath, 'val')
     testDirPath = os.path.join(rootDirPath, 'test')
@@ -113,10 +113,11 @@ if __name__ == "__main__":
 
         # imagePathList = [imagePathList[0], imagePathList[1]]
         # maskImageList = [Image.open(maskPathList[0]), Image.open(maskPathList[1])]
-        maskImageList = [Image.open(maskPath) for maskPath in maskPathList]
+        # maskImageList = [Image.open(maskPath) for maskPath in maskPathList]
 
         # Define which colors match which categories in the images
-        category_names_list = ['table', 'chair', 'drawer']
+        category_names_list = ['ashcan', 'beer_bottle', 'beer_can', 'bowl', 'camera', 'chair', 'clock', 'coke', 'faucet', 
+        'football_helmet', 'guitar', 'jug', 'lamp', 'piano', 'pistol', 'pool_table', 'sofa']
         category_ids = {
         #   '(255, 255, 255)': category_names_list.index('table')+1,
         #   '(0, 255, 255)': category_names_list.index('chair')+1,
@@ -128,6 +129,19 @@ if __name__ == "__main__":
         '1': 1,
         '2': 2,
         '3': 3,
+        '4': 4,
+        '5': 5,
+        '6': 6,
+        '7': 7,
+        '8': 8,
+        '9': 9,
+        '10': 10,
+        '11': 11,
+        '12': 12,
+        '13': 13,
+        '14': 14,
+        '15': 15,
+        '16': 16,
         '255': 255,
         }
 
@@ -136,7 +150,7 @@ if __name__ == "__main__":
 
         # Create the info dict
         info_dict = {}
-        info_dict['description'] = "kcyoon 2022 IKEA Dataset (" + os.path.split(dataDirPath)[-1] + ")"
+        info_dict['description'] = "kcyoon 2022 ShapeNet Dataset (" + os.path.split(dataDirPath)[-1] + ")"
         info_dict['url'] = ""
         info_dict['version'] = "1.0"
         info_dict['year'] = 2022
@@ -158,7 +172,7 @@ if __name__ == "__main__":
         image_id = 1
         pbar = tqdm(imagePathList)
         for imagePath in pbar:
-            pbar.set_description("images [" + os.path.split(dataDirPath)[-1] + "]")
+            pbar.set_description("images [" + os.path.split(imagePath)[-1] + "]")
             image_dict = {}
             image_dict['id'] = image_id
             image_dict['license'] = 1
@@ -176,9 +190,11 @@ if __name__ == "__main__":
         annotation_list = []
         image_id = 1
         annotation_id = 1
-        pbar = tqdm(maskImageList)
-        for mask_image in tqdm(maskImageList):
-            pbar.set_description("annotations [" + os.path.split(dataDirPath)[-1] + "]")
+        pbar = tqdm(maskPathList)
+        # for mask_image in tqdm(maskImageList):
+        for maskPath in pbar:
+            mask_image = Image.open(maskPath)
+            pbar.set_description("annotations [" + os.path.split(maskPath)[-1] + "]")
             sub_masks = create_sub_masks(mask_image)
             for color, sub_mask in sub_masks.items():
                 category_id = category_ids[color]
@@ -193,7 +209,7 @@ if __name__ == "__main__":
         for category_names in category_names_list:
             categories_dict = {}
             categories_dict['supercategory'] = ""
-            categories_dict['id'] = category_names_list.index(category_names)+1
+            categories_dict['id'] = category_names_list.index(category_names)
             categories_dict['name'] = category_names
             categories_list.append(categories_dict)
 
